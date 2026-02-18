@@ -5,40 +5,29 @@ class DataCleaner:
         self.df = df
 
     def handle_missing_values(self):
-        # Fill CGPA with median
-        self.df["CGPA"] = self.df["CGPA"].fillna(self.df["CGPA"].median())
-
-        # Fill Substance_Use with mode
-        self.df["Substance_Use"] = self.df["Substance_Use"].fillna(
-            self.df["Substance_Use"].mode()[0]
-        )
-
+        self.df.fillna(self.df.median(numeric_only=True), inplace=True)
+        self.df.fillna(self.df.mode().iloc[0], inplace=True)
         return self.df
 
     def create_target_variable(self):
-        # Create Mental Score
-        self.df["Mental_Score"] = (
-            self.df["Stress_Level"]
-            + self.df["Depression_Score"]
-            + self.df["Anxiety_Score"]
-            + self.df["Financial_Stress"]
-        )
-
-        # Classification rule
         def classify_wellness(score):
-            if score <= 5:
+            if score <= 3:
                 return "High Wellness"
-            elif score <= 12:
+            elif score <= 7:
                 return "Moderate Wellness"
             else:
                 return "Low Wellness"
 
-        self.df["Wellness_Level"] = self.df["Mental_Score"].apply(classify_wellness)
+        self.df["Wellness_Level"] = self.df["Depression_Score"].apply(classify_wellness)
+
+        # Drop target source to avoid leakage
+        self.df.drop("Depression_Score", axis=1, inplace=True)
 
         return self.df
 
     def clean_data(self):
         self.handle_missing_values()
         self.create_target_variable()
-        print(" Data cleaned successfully")
+        print("Data cleaned successfully")
         return self.df
+

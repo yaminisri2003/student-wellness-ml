@@ -1,8 +1,23 @@
+# Virtual Environment
 ml/
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Environment files
 .env
+
+# Jupyter
 .ipynb_checkpoints/
+
+# Data
 data/raw/
+
+# Generated artifacts
+models/
+reports/
+
