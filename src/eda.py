@@ -1,90 +1,162 @@
+# src/eda.py
+
+import os
+import re
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
-import os
+
+sns.set(style="whitegrid")
+plt.rcParams["figure.figsize"] = (8, 5)
 
 
-class EDA:
-    def __init__(self, df: pd.DataFrame, output_dir="reports"):
-        self.df = df
-        self.output_dir = output_dir
+# -------------------------------------
+# SAFE FILENAME FUNCTION
+# -------------------------------------
 
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+def clean_filename(name):
+    """
+    Remove special characters from column names
+    to make them safe for saving as file names.
+    """
+    name = re.sub(r"[^\w\s-]", "", name)
+    name = name.replace(" ", "_")
+    return name
 
-    # -----------------------------------
-    # 1. Target Distribution
-    # -----------------------------------
-    def plot_target_distribution(self):
+
+# -------------------------------------
+# MAIN EDA FUNCTION
+# -------------------------------------
+
+def run_eda(df):
+
+    print("\n==============================")
+    print(" STARTING EDA")
+    print("==============================")
+
+    # -------------------------------------
+    # Create Output Directories
+    # -------------------------------------
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    outputs_dir = os.path.join(base_dir, "outputs")
+    figures_dir = os.path.join(outputs_dir, "figures")
+    tables_dir = os.path.join(outputs_dir, "tables")
+
+    os.makedirs(figures_dir, exist_ok=True)
+    os.makedirs(tables_dir, exist_ok=True)
+
+    # -------------------------------------
+    # 1️⃣ TARGET ANALYSIS
+    # -------------------------------------
+
+    target_distribution = df["Depression"].value_counts(normalize=True) * 100
+    target_distribution.to_csv(
+        os.path.join(tables_dir, "target_distribution.csv")
+    )
+
+    plt.figure()
+    sns.countplot(x="Depression", data=df)
+    plt.title("Depression Class Distribution")
+    plt.savefig(os.path.join(figures_dir, "target_distribution.png"))
+    plt.close()
+
+    # -------------------------------------
+    # 2️⃣ NUMERICAL ANALYSIS
+    # -------------------------------------
+
+    numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+
+    if "Depression" in numerical_cols:
+        numerical_cols.remove("Depression")
+
+    # Summary statistics
+    summary_stats = df[numerical_cols].describe()
+    summary_stats.to_csv(
+        os.path.join(tables_dir, "numerical_summary_statistics.csv")
+    )
+
+    # Correlation matrix
+    corr_matrix = df.corr(numeric_only=True)
+    corr_matrix.to_csv(
+        os.path.join(tables_dir, "correlation_matrix.csv")
+    )
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_matrix, cmap="coolwarm", annot=False)
+    plt.title("Correlation Heatmap")
+    plt.savefig(os.path.join(figures_dir, "correlation_heatmap.png"))
+    plt.close()
+
+    # Boxplots vs Depression
+    for col in numerical_cols:
+
+        safe_col = clean_filename(col)
+
         plt.figure()
-        self.df["Wellness_Level"].value_counts().plot(kind="bar")
-        plt.title("Wellness Level Distribution")
-        plt.xlabel("Wellness Level")
-        plt.ylabel("Count")
-        plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/wellness_distribution.png")
+        sns.boxplot(x="Depression", y=col, data=df)
+        plt.title(f"{col} vs Depression")
+        plt.savefig(
+            os.path.join(figures_dir, f"{safe_col}_vs_depression.png")
+        )
         plt.close()
-        print("Target distribution plot saved")
 
-    # -----------------------------------
-    # 2. Correlation Heatmap
-    # -----------------------------------
-    def plot_correlation_heatmap(self):
-        plt.figure()
-        numerical_df = self.df.select_dtypes(include=["int64", "float64"])
-        correlation = numerical_df.corr()
-        sns.heatmap(correlation, annot=False)
-        plt.title("Correlation Heatmap")
+    # -------------------------------------
+    # 3️⃣ CATEGORICAL ANALYSIS
+    # -------------------------------------
+
+    categorical_cols = df.select_dtypes(include="object").columns.tolist()
+
+    for col in categorical_cols:
+
+        safe_col = clean_filename(col)
+
+        # Save value counts
+        value_counts = df[col].value_counts()
+        value_counts.to_csv(
+            os.path.join(tables_dir, f"{safe_col}_value_counts.csv")
+        )
+
+        # Plot
+        plt.figure(figsize=(8, 4))
+        sns.countplot(x=col, hue="Depression", data=df)
+        plt.title(f"{col} vs Depression")
+        plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/correlation_heatmap.png")
+        plt.savefig(
+            os.path.join(figures_dir, f"{safe_col}_vs_depression.png")
+        )
         plt.close()
-        print("Correlation heatmap saved")
 
-    # -----------------------------------
-    # 3. Stress vs Wellness
-    # -----------------------------------
-    def plot_stress_vs_wellness(self):
-        plt.figure()
-        sns.boxplot(x="Wellness_Level", y="Stress_Level", data=self.df)
-        plt.title("Stress Level vs Wellness")
-        plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/stress_vs_wellness.png")
-        plt.close()
-        print("Stress vs Wellness plot saved")
+    # -------------------------------------
+    # 4️⃣ MULTICOLLINEARITY CHECK
+    # -------------------------------------
 
-    # -----------------------------------
-    # 4. Anxiety vs Wellness
-    # -----------------------------------
-    def plot_anxiety_vs_wellness(self):
-        plt.figure()
-        sns.boxplot(x="Wellness_Level", y="Anxiety_Score", data=self.df)
-        plt.title("Anxiety Score vs Wellness")
-        plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/anxiety_vs_wellness.png")
-        plt.close()
-        print("Anxiety vs Wellness plot saved")
+    corr_abs = df[numerical_cols].corr().abs()
 
-    # -----------------------------------
-    # 5. CGPA vs Wellness
-    # -----------------------------------
-    def plot_cgpa_vs_wellness(self):
-        plt.figure()
-        sns.boxplot(x="Wellness_Level", y="CGPA", data=self.df)
-        plt.title("CGPA vs Wellness Level")
-        plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/cgpa_vs_wellness.png")
-        plt.close()
-        print("CGPA vs Wellness plot saved")
+    high_corr_pairs = []
 
-    # -----------------------------------
-    # Run All EDA
-    # -----------------------------------
-    def run_eda(self):
-        print("Running EDA...")
-        self.plot_target_distribution()
-        self.plot_correlation_heatmap()
-        self.plot_stress_vs_wellness()
-        self.plot_anxiety_vs_wellness()
-        self.plot_cgpa_vs_wellness()
-        print("EDA completed")
+    for i in range(len(corr_abs.columns)):
+        for j in range(i):
+            if corr_abs.iloc[i, j] > 0.8:
+                high_corr_pairs.append(
+                    (
+                        corr_abs.columns[i],
+                        corr_abs.columns[j],
+                        corr_abs.iloc[i, j],
+                    )
+                )
+
+    high_corr_df = pd.DataFrame(
+        high_corr_pairs,
+        columns=["Feature 1", "Feature 2", "Correlation"],
+    )
+
+    high_corr_df.to_csv(
+        os.path.join(tables_dir, "high_multicollinearity_pairs.csv"),
+        index=False,
+    )
+
+    print("EDA outputs successfully saved in 'outputs/' folder.")
 

@@ -1,156 +1,109 @@
-import joblib
 import os
+import pandas as pd
 import numpy as np
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix
-)
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-
-import seaborn as sns
 import matplotlib.pyplot as plt
+
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 
 
 class ModelTrainer:
-    def __init__(self, X, y):
-        self.X = X
-        self.y = y
 
-        # Ensure models directory exists
-        os.makedirs("models", exist_ok=True)
+    @staticmethod
+    def train_logistic_regression(preprocessor, X_train, X_test, y_train, y_test):
 
-    # ----------------------------
-    # 1. Train-Test Split
-    # ----------------------------
-    def split_data(self):
-        X_train, X_test, y_train, y_test = train_test_split(
-            self.X,
-            self.y,
-            test_size=0.2,
-            random_state=42,
-            stratify=self.y  # important for imbalance
-        )
+        print("\n🚀 Training Logistic Regression Model...\n")
 
-        print("Train-Test Split Done")
-        print("Train shape:", X_train.shape)
-        print("Test shape:", X_test.shape)
+        # Create pipeline
+        pipeline = Pipeline([
+            ("preprocessor", preprocessor),
+            ("classifier", LogisticRegression(
+                max_iter=1000,
+                class_weight="balanced"   # handles imbalance
+            ))
+        ])
 
-        return X_train, X_test, y_train, y_test
+        # Train model
+        pipeline.fit(X_train, y_train)
 
-    # ----------------------------
-    # 2. Feature Scaling
-    # ----------------------------
-    def scale_features(self, X_train, X_test):
-        scaler = StandardScaler()
+        # Predictions
+        y_pred = pipeline.predict(X_test)
 
-        X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
-
-        print("Features scaled")
-
-        # Save scaler for future inference
-        joblib.dump(scaler, "models/scaler.pkl")
-
-        return X_train, X_test
-
-    # ----------------------------
-    # 3. Logistic Regression
-    # ----------------------------
-    def train_logistic_regression(self, X_train, X_test, y_train, y_test):
-
-        print("\nTraining Logistic Regression (Balanced)...")
-
-        model = LogisticRegression(
-            max_iter=1000,
-            class_weight="balanced"
-        )
-
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-
+        # ---------------------------
+        # Evaluation Metrics
+        # ---------------------------
         accuracy = accuracy_score(y_test, y_pred)
-        report = classification_report(y_test, y_pred)
-        report_dict = classification_report(y_test, y_pred, output_dict=True)
+        precision = precision_score(y_test, y_pred, zero_division=0)
+        recall = recall_score(y_test, y_pred, zero_division=0)
+        f1 = f1_score(y_test, y_pred, zero_division=0)
 
-        print("\nLogistic Regression Results")
-        print("Accuracy:", round(accuracy, 4))
-        print(report)
+        print("📊 Model Performance:")
+        print(f"Accuracy : {accuracy:.4f}")
+        print(f"Precision: {precision:.4f}")
+        print(f"Recall   : {recall:.4f}")
+        print(f"F1 Score : {f1:.4f}")
 
-        # Extract F1 for Moderate Wellness
-        if "Moderate Wellness" in report_dict:
-            moderate_f1 = report_dict["Moderate Wellness"]["f1-score"]
-            moderate_recall = report_dict["Moderate Wellness"]["recall"]
+        print("\n📄 Classification Report:\n")
+        print(classification_report(y_test, y_pred, zero_division=0))
 
-            print("F1 Score (Moderate Wellness):", round(moderate_f1, 4))
-            print("Recall (Moderate Wellness):", round(moderate_recall, 4))
+        # ---------------------------
+        # Feature Importance
+        # ---------------------------
+        print("\n🔍 Extracting Feature Importance...\n")
 
-        # Confusion Matrix
-        cm = confusion_matrix(y_test, y_pred)
+        # Get feature names after preprocessing
+        feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
 
-        print("\nConfusion Matrix:")
-        print(cm)
+        # Get logistic regression coefficients
+        coefficients = pipeline.named_steps["classifier"].coef_[0]
 
-        plt.figure()
-        sns.heatmap(cm, annot=True, fmt="d")
-        plt.title("Confusion Matrix - Logistic Regression")
-        plt.ylabel("Actual")
-        plt.xlabel("Predicted")
-        plt.show()
+        # Create DataFrame
+        feature_importance_df = pd.DataFrame({
+            "feature": feature_names,
+            "coefficient": coefficients,
+            "importance": np.abs(coefficients)
+        })
 
-        joblib.dump(model, "models/logistic_regression.pkl")
-        print("Logistic Regression model saved")
-
-    # ----------------------------
-    # 4. Random Forest
-    # ----------------------------
-    def train_random_forest(self, X_train, X_test, y_train, y_test):
-
-        print("\nTraining Random Forest Classifier (Balanced)...")
-
-        model = RandomForestClassifier(
-            random_state=42,
-            class_weight="balanced"
+        # Sort by importance
+        feature_importance_df = feature_importance_df.sort_values(
+            by="importance",
+            ascending=False
         )
 
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+        # Save CSV
+        os.makedirs("artifacts", exist_ok=True)
+        feature_importance_df.to_csv(
+            "artifacts/logistic_feature_importance.csv",
+            index=False
+        )
 
-        accuracy = accuracy_score(y_test, y_pred)
-        report = classification_report(y_test, y_pred)
-        report_dict = classification_report(y_test, y_pred, output_dict=True)
+        print("✅ Feature importance saved to artifacts/logistic_feature_importance.csv")
 
-        print("\nRandom Forest Results")
-        print("Accuracy:", round(accuracy, 4))
-        print(report)
+        # ---------------------------
+        # Plot Top 15 Features
+        # ---------------------------
+        top_features = feature_importance_df.head(15)
 
-        # Extract F1 for Moderate Wellness
-        if "Moderate Wellness" in report_dict:
-            moderate_f1 = report_dict["Moderate Wellness"]["f1-score"]
-            moderate_recall = report_dict["Moderate Wellness"]["recall"]
+        plt.figure(figsize=(10, 6))
+        plt.barh(top_features["feature"], top_features["importance"])
+        plt.xlabel("Absolute Coefficient Value")
+        plt.ylabel("Feature")
+        plt.title("Top 15 Feature Importance - Logistic Regression")
+        plt.gca().invert_yaxis()
+        plt.tight_layout()
+        plt.savefig("artifacts/top_15_feature_importance.png")
+        plt.close()
 
-            print("F1 Score (Moderate Wellness):", round(moderate_f1, 4))
-            print("Recall (Moderate Wellness):", round(moderate_recall, 4))
+        print("📊 Top 15 feature importance plot saved to artifacts/top_15_feature_importance.png")
 
-        # Confusion Matrix
-        cm = confusion_matrix(y_test, y_pred)
+        print("\n✅ Logistic Regression Training Complete!\n")
 
-        print("\nConfusion Matrix:")
-        print(cm)
+        return pipeline
 
-        plt.figure()
-        sns.heatmap(cm, annot=True, fmt="d")
-        plt.title("Confusion Matrix - Random Forest")
-        plt.ylabel("Actual")
-        plt.xlabel("Predicted")
-        plt.show()
 
-        joblib.dump(model, "models/random_forest_classifier.pkl")
-        print("Random Forest model saved")
+
+
 
 
 
