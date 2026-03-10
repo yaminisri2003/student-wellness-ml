@@ -11,7 +11,7 @@ class AdvancedModels:
 
         models = {}
 
-        # 1️⃣ Logistic Regression (Baseline)
+        #  Logistic Regression (Baseline)
         models["Logistic Regression"] = Pipeline([
             ("preprocessor", preprocessor),
             ("classifier", LogisticRegression(
@@ -20,7 +20,7 @@ class AdvancedModels:
             ))
         ])
 
-        # 2️⃣ Random Forest
+        #  Random Forest
         models["Random Forest"] = Pipeline([
             ("preprocessor", preprocessor),
             ("classifier", RandomForestClassifier(
@@ -30,7 +30,7 @@ class AdvancedModels:
             ))
         ])
 
-        # 3️⃣ Gradient Boosting
+        #  Gradient Boosting
         models["Gradient Boosting"] = Pipeline([
             ("preprocessor", preprocessor),
             ("classifier", GradientBoostingClassifier(
@@ -39,7 +39,7 @@ class AdvancedModels:
             ))
         ])
 
-        # 4️⃣ XGBoost
+        #  XGBoost
         models["XGBoost"] = Pipeline([
             ("preprocessor", preprocessor),
             ("classifier", XGBClassifier(

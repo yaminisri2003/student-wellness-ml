@@ -10,10 +10,10 @@ import os
 # Streamlit App Title
 # -------------------------------
 st.set_page_config(page_title="Student Depression ML Dashboard", layout="wide")
-st.title("📊 Student Depression Project Dashboard")
+st.title(" Student Depression Project Dashboard")
 
 # -------------------------------
-# 1️⃣ Load Data
+#  Load Data
 # -------------------------------
 st.header("Dataset Overview")
 try:
@@ -24,7 +24,7 @@ except FileNotFoundError:
     st.error("Dataset not found. Make sure 'data/raw/student_depression_dataset.csv' exists.")
 
 # -------------------------------
-# 2️⃣ Load Test Metrics
+#  Load Test Metrics
 # -------------------------------
 st.header("Test Set Metrics")
 try:
@@ -34,7 +34,7 @@ except FileNotFoundError:
     st.warning("Test metrics not found. Run main.py first.")
 
 # -------------------------------
-# 3️⃣ Confusion Matrix
+#  Confusion Matrix
 # -------------------------------
 st.header("Confusion Matrix")
 try:
@@ -53,7 +53,7 @@ except FileNotFoundError:
     st.warning("Test predictions not found. Run main.py first.")
 
 # -------------------------------
-# 4️⃣ Feature Importance
+#  Feature Importance
 # -------------------------------
 st.header("Feature Importance")
 
@@ -72,7 +72,7 @@ try:
         for f in fi_files:
             file_path = os.path.join(fi_folder, f)
 
-            # ✅ Extra safety — avoid folders
+            #  Extra safety — avoid folders
             if os.path.isfile(file_path):
                 img = Image.open(file_path)
                 st.image(img, caption=f, width=700)
@@ -84,7 +84,7 @@ except FileNotFoundError:
     st.warning("Artifacts folder missing. Run main.py first.")
 
 # -------------------------------
-# 5️⃣ SHAP Summary
+#  SHAP Summary
 # -------------------------------
 st.header("SHAP Explainability")
 shap_folder = "artifacts/shap"

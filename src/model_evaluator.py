@@ -21,7 +21,7 @@ class ModelEvaluator:
         Returns mean CV score.
         """
 
-        print("\n🔎 Running 5-Fold Cross-Validation...")
+        print("\n Running 5-Fold Cross-Validation...")
 
         cv = StratifiedKFold(
             n_splits=5,
@@ -60,7 +60,7 @@ class ModelEvaluator:
 
         for name, model in models.items():
 
-            print(f"\n🚀 Training {name}...")
+            print(f"\n Training {name}...")
 
             model.fit(X_train, y_train)
 
@@ -93,10 +93,10 @@ class ModelEvaluator:
         os.makedirs("artifacts", exist_ok=True)
         results_df.to_csv("artifacts/model_comparison.csv", index=False)
 
-        print("\n📊 Model Comparison (Sorted by F1):")
+        print("\n Model Comparison (Sorted by F1):")
         print(results_df)
 
-        print("\n✅ Results saved to artifacts/model_comparison.csv")
+        print("\n Results saved to artifacts/model_comparison.csv")
 
         return results_df
 

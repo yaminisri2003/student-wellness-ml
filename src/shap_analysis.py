@@ -42,22 +42,22 @@ class SHAPAnalysis:
         # Create Tree Explainer
         explainer = shap.TreeExplainer(self.model)
 
-        print("\n🔍 Running SHAP Explainability... (sampling {} rows)".format(self.X_sample.shape[0]))
+        print("\n Running SHAP Explainability... (sampling {} rows)".format(self.X_sample.shape[0]))
         shap_values = explainer(self.X_sample, check_additivity=False)
 
         # Make output directory
         os.makedirs("artifacts/shap", exist_ok=True)
 
         # Summary plot
-        print("📊 Creating summary plot...")
+        print(" Creating summary plot...")
         shap.summary_plot(shap_values, self.X_sample, feature_names=self.feature_names, show=False)
         shap.summary_plot(shap_values, self.X_sample, feature_names=self.feature_names, plot_type="bar", show=False)
-        print("✅ Summary plots saved in artifacts/shap/")
+        print(" Summary plots saved in artifacts/shap/")
 
         # Save shap values for later use
         shap_values_array = shap_values.values if hasattr(shap_values, "values") else shap_values
         pd.DataFrame(shap_values_array, columns=self.feature_names).to_csv("artifacts/shap/shap_values.csv", index=False)
-        print("✅ SHAP values saved to artifacts/shap/shap_values.csv")
+        print(" SHAP values saved to artifacts/shap/shap_values.csv")
 
         return shap_values
         

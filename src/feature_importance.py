@@ -14,10 +14,10 @@ class FeatureImportance:
         self.y_train = y_train
 
     # -------------------------------------------------
-    # ✅ Permutation Importance
+    #  Permutation Importance
     # -------------------------------------------------
     def compute_permutation_importance(self):
-        print("\n🔍 Computing Permutation Feature Importance...")
+        print("\n Computing Permutation Feature Importance...")
 
         result = permutation_importance(
             self.model,
@@ -50,18 +50,18 @@ class FeatureImportance:
         plt.xlabel("Importance")
         plt.tight_layout()
 
-        # ✅ Save image directly inside artifacts
+        #  Save image directly inside artifacts
         plt.savefig("artifacts/permutation_importance.png")
         plt.close()
 
-        print("✅ Permutation importance saved -> artifacts/")
+        print(" Permutation importance saved -> artifacts/")
         return importance_df
 
     # -------------------------------------------------
-    # ✅ Partial Dependence Plots (FIXED)
+    #  Partial Dependence Plots (FIXED)
     # -------------------------------------------------
     def plot_pdp(self, features=None):
-        print("\n📊 Plotting Partial Dependence Plots...")
+        print("\n Plotting Partial Dependence Plots...")
 
         if features is None:
             features = self.X_train.columns[:5]
@@ -77,7 +77,7 @@ class FeatureImportance:
                     kind="average"
                 )
 
-                # ✅ Save PDP directly as image
+                #  Save PDP directly as image
                 plt.gcf()
                 plt.tight_layout()
 
@@ -85,9 +85,9 @@ class FeatureImportance:
                 plt.savefig(filename)
                 plt.close()
 
-                print(f"✅ Saved PDP for {feature}")
+                print(f" Saved PDP for {feature}")
 
             except Exception as e:
                 print(f"⚠ Error plotting PDP for {feature}: {e}")
 
-        print("✅ All PDP plots saved inside artifacts/")
+        print(" All PDP plots saved inside artifacts/")

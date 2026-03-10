@@ -19,7 +19,7 @@ def run_outlier_analysis(df: pd.DataFrame, contamination=0.05):
     print("==============================\n")
 
     # -------------------------------------------------------
-    # 1️⃣ IQR METHOD
+    #  IQR METHOD
     # -------------------------------------------------------
     iqr_flags = pd.Series(False, index=df.index)
 
@@ -38,7 +38,7 @@ def run_outlier_analysis(df: pd.DataFrame, contamination=0.05):
     iqr_percent = (iqr_count / total_rows) * 100
 
     # -------------------------------------------------------
-    # 2️⃣ Z-SCORE METHOD
+    # Z-SCORE METHOD
     # -------------------------------------------------------
     z_scores = np.abs(stats.zscore(df[numeric_cols]))
     z_flags = (z_scores > 3).any(axis=1)
@@ -47,7 +47,7 @@ def run_outlier_analysis(df: pd.DataFrame, contamination=0.05):
     z_percent = (z_count / total_rows) * 100
 
     # -------------------------------------------------------
-    # 3️⃣ Isolation Forest
+    #  Isolation Forest
     # -------------------------------------------------------
     iforest = IsolationForest(
         contamination=contamination,
@@ -60,7 +60,7 @@ def run_outlier_analysis(df: pd.DataFrame, contamination=0.05):
     if_percent = (if_count / total_rows) * 100
 
     # -------------------------------------------------------
-    # 4️⃣ Local Outlier Factor
+    #  Local Outlier Factor
     # -------------------------------------------------------
     lof = LocalOutlierFactor(n_neighbors=20)
     lof_preds = lof.fit_predict(df[numeric_cols])
@@ -96,16 +96,16 @@ def run_outlier_analysis(df: pd.DataFrame, contamination=0.05):
     print("==============================")
 
     if iqr_percent < 3 and z_percent < 3:
-        print("✔ Classical methods show LOW outliers.")
-        print("✔ Dataset is stable.")
+        print(" Classical methods show LOW outliers.")
+        print(" Dataset is stable.")
     else:
-        print("⚠ Moderate classical outliers detected.")
+        print(" Moderate classical outliers detected.")
 
     if overlap_percent < 2:
-        print("✔ ML methods do NOT strongly agree.")
-        print("✔ Likely natural survey variation.")
+        print(" ML methods do NOT strongly agree.")
+        print(" Likely natural survey variation.")
     else:
-        print("⚠ Strong ML agreement on anomalies.")
+        print(" Strong ML agreement on anomalies.")
 
     print("\nOutlier analysis completed.\n")
 

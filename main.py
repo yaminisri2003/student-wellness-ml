@@ -30,13 +30,13 @@ def save_test_metrics(y_true, y_pred, filepath="artifacts/test_metrics.csv"):
     }
     df = pd.DataFrame(metrics)
     df.to_csv(filepath, index=False)
-    print(f"\n✅ Test metrics saved to {filepath}")
+    print(f"\n Test metrics saved to {filepath}")
 
 
 def save_test_predictions(y_true, y_pred, filepath="artifacts/test_predictions.csv"):
     df = pd.DataFrame({"y_true": y_true, "y_pred": y_pred})
     df.to_csv(filepath, index=False)
-    print(f"✅ Test predictions saved to {filepath}")
+    print(f" Test predictions saved to {filepath}")
 
 
 # -------------------------------
@@ -47,20 +47,20 @@ def main():
     print(" STUDENT DEPRESSION PROJECT ")
     print("==============================")
 
-    # 1️⃣ Load & Clean Data
+    #  Load & Clean Data
     df = load_data("data/raw/student_depression_dataset.csv")
     df = clean_data(df)
     df = df.drop("Have you ever had suicidal thoughts ?", axis=1)  # avoid leakage
-    print(f"\n✅ Data Loaded & Cleaned | Shape: {df.shape}")
+    print(f"\n Data Loaded & Cleaned | Shape: {df.shape}")
 
-    # 2️⃣ Split Features & Target
+    #  Split Features & Target
     X = df.drop("Depression", axis=1)
     y = df["Depression"]
 
     categorical_cols = X.select_dtypes(include="object").columns.tolist()
     numerical_cols = X.select_dtypes(exclude="object").columns.tolist()
 
-    # 3️⃣ Preprocessing Pipeline
+    #  Preprocessing Pipeline
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), numerical_cols),
@@ -71,34 +71,34 @@ def main():
     ohe_cols = preprocessor.transformers_[1][1].get_feature_names_out(categorical_cols)
     all_cols = numerical_cols + ohe_cols.tolist()
     X_processed = pd.DataFrame(X_processed_array, columns=all_cols)
-    print(f"\n✅ Preprocessing Done | Total Features: {X_processed.shape[1]}")
+    print(f"\n Preprocessing Done | Total Features: {X_processed.shape[1]}")
 
-    # 4️⃣ Train/Test Split
+    #  Train/Test Split
     X_train, X_test, y_train, y_test = train_test_split(
         X_processed, y, test_size=0.2, stratify=y, random_state=42
     )
     print("\n✅ Train/Test Split Completed")
 
-    # 5️⃣ Hyperparameter Tuning (Gradient Boosting)
-    print("\n🚀 Starting Hyperparameter Tuning (Gradient Boosting)")
+    #  Hyperparameter Tuning (Gradient Boosting)
+    print("\n Starting Hyperparameter Tuning (Gradient Boosting)")
     tuner = HyperparameterTuner(X_train, y_train)
     best_params = tuner.tune(n_trials=5)  # adjust n_trials as needed
-    print(f"\n✅ Best Hyperparameters: {best_params}")
+    print(f"\n Best Hyperparameters: {best_params}")
 
-    # 6️⃣ Train Final Model
+    #  Train Final Model
     final_model = GradientBoostingClassifier(**best_params, random_state=42)
     final_model.fit(X_train, y_train)
-    print("\n✅ Final Gradient Boosting Model Trained")
+    print("\n Final Gradient Boosting Model Trained")
 
-    # 7️⃣ Evaluate on Test Set
+    #  Evaluate on Test Set
     y_pred = final_model.predict(X_test)
     save_test_metrics(y_test, y_pred)
     save_test_predictions(y_test, y_pred)
 
     # -------------------------------
-    # 8️⃣ Permutation Feature Importance
+    #  Permutation Feature Importance
     # -------------------------------
-    print("\n🔍 Computing Permutation Feature Importance...")
+    print("\n Computing Permutation Feature Importance...")
     os.makedirs("artifacts", exist_ok=True)
     perm_importance = permutation_importance(final_model, X_test, y_test, n_repeats=10, random_state=42)
     sorted_idx = perm_importance.importances_mean.argsort()[::-1]
@@ -110,13 +110,13 @@ def main():
     plt.tight_layout()
     plt.savefig("artifacts/permutation_importance.png")
     plt.close()
-    print("✅ Permutation Importance saved to artifacts/")
+    print(" Permutation Importance saved to artifacts/")
 
     # -------------------------------
-    # 9️⃣ Partial Dependence Plots (top 5 features)
+    #  Partial Dependence Plots (top 5 features)
     # -------------------------------
     top_features = X_test.columns[sorted_idx[:5]]
-    print(f"\n🔍 Generating PDP for top 5 features: {list(top_features)}")
+    print(f"\n Generating PDP for top 5 features: {list(top_features)}")
     for feat in top_features:
         fig, ax = plt.subplots(figsize=(6, 4))
         PartialDependenceDisplay.from_estimator(final_model, X_test, [feat], ax=ax)
@@ -124,12 +124,12 @@ def main():
         os.makedirs("artifacts/pdp", exist_ok=True)
         plt.savefig(f"artifacts/pdp/pdp_{feat}.png")
         plt.close()
-    print("✅ PDP plots saved to artifacts/pdp/")
+    print(" PDP plots saved to artifacts/pdp/")
 
     # -------------------------------
-    # 10️⃣ SHAP Explainability
+    #  SHAP Explainability
     # -------------------------------
-    print("\n🔍 Running SHAP Explainability...")
+    print("\n Running SHAP Explainability...")
     os.makedirs("artifacts/shap", exist_ok=True)
     explainer = shap.Explainer(final_model, X_test)
     shap_values = explainer(X_test)
@@ -138,9 +138,9 @@ def main():
     shap.summary_plot(shap_values, X_test, show=False)
     plt.savefig("artifacts/shap/shap_summary.png", bbox_inches='tight')
     plt.close()
-    print("✅ SHAP summary plot saved to artifacts/shap/")
+    print(" SHAP summary plot saved to artifacts/shap/")
 
-    print("\n🎯 All steps completed! Artifacts saved to 'artifacts/' for Streamlit dashboard.")
+    print("\n All steps completed! Artifacts saved to 'artifacts/' for Streamlit dashboard.")
 
 
 if __name__ == "__main__":

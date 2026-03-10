@@ -13,7 +13,7 @@ class ModelTrainer:
     @staticmethod
     def train_logistic_regression(preprocessor, X_train, X_test, y_train, y_test):
 
-        print("\n🚀 Training Logistic Regression Model...\n")
+        print("\n Training Logistic Regression Model...\n")
 
         # Create pipeline
         pipeline = Pipeline([
@@ -38,19 +38,19 @@ class ModelTrainer:
         recall = recall_score(y_test, y_pred, zero_division=0)
         f1 = f1_score(y_test, y_pred, zero_division=0)
 
-        print("📊 Model Performance:")
+        print(" Model Performance:")
         print(f"Accuracy : {accuracy:.4f}")
         print(f"Precision: {precision:.4f}")
         print(f"Recall   : {recall:.4f}")
         print(f"F1 Score : {f1:.4f}")
 
-        print("\n📄 Classification Report:\n")
+        print("\n Classification Report:\n")
         print(classification_report(y_test, y_pred, zero_division=0))
 
         # ---------------------------
         # Feature Importance
         # ---------------------------
-        print("\n🔍 Extracting Feature Importance...\n")
+        print("\n Extracting Feature Importance...\n")
 
         # Get feature names after preprocessing
         feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
@@ -78,7 +78,7 @@ class ModelTrainer:
             index=False
         )
 
-        print("✅ Feature importance saved to artifacts/logistic_feature_importance.csv")
+        print(" Feature importance saved to artifacts/logistic_feature_importance.csv")
 
         # ---------------------------
         # Plot Top 15 Features
@@ -95,9 +95,9 @@ class ModelTrainer:
         plt.savefig("artifacts/top_15_feature_importance.png")
         plt.close()
 
-        print("📊 Top 15 feature importance plot saved to artifacts/top_15_feature_importance.png")
+        print(" Top 15 feature importance plot saved to artifacts/top_15_feature_importance.png")
 
-        print("\n✅ Logistic Regression Training Complete!\n")
+        print("\n Logistic Regression Training Complete!\n")
 
         return pipeline
 

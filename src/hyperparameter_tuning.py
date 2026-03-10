@@ -36,7 +36,7 @@ class HyperparameterTuner:
         study = optuna.create_study(direction="maximize")
         study.optimize(self.objective, n_trials=n_trials, show_progress_bar=True)
 
-        print("\n✅ Best Parameters Found:")
+        print("\n Best Parameters Found:")
         print(study.best_params)
         print(f"Best CV F1 Score: {study.best_value:.4f}")
 
