@@ -119,9 +119,9 @@ Before modeling, outliers are detected using **four complementary methods** to u
 The overlap between Isolation Forest and LOF is used as a reliability signal — low overlap suggests natural survey variation rather than true data errors.
 
 A recommendation is printed automatically:
-- ✔ If classical outliers are < 3% → dataset is stable
-- ✔ If ML methods don't strongly agree → likely natural variation
-- ⚠ If both flags are high → anomalies may need treatment
+-  If classical outliers are < 3% → dataset is stable
+-  If ML methods don't strongly agree → likely natural variation
+-  If both flags are high → anomalies may need treatment
 
 **Output:** Summary table printed + recommendation logged to console
 
@@ -224,7 +224,7 @@ Sequentially corrects errors of weak learners. Highly effective on tabular data 
 GradientBoostingClassifier(n_estimators=200)
 ```
 
-*⚡ XGBoost**
+* XGBoost**
 Optimized gradient boosting with L1/L2 regularization. Faster than standard GB and handles sparse, one-hot encoded features effectively.
 ```python
 XGBClassifier(n_estimators=200, learning_rate=0.1, max_depth=6, eval_metric="logloss")
